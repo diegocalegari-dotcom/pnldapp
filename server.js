@@ -19,8 +19,8 @@ app.use(cors({
 }));
 app.use(bodyParser.json());
 app.use(session({
-    // Em produção, use uma variável de ambiente para o secret
-    secret: 'a-very-secret-key-for-pnld-voting-app', 
+    // Lê o segredo da sessão das variáveis de ambiente ou usa um valor padrão.
+    secret: process.env.SESSION_SECRET || 'a-very-secret-key-for-pnld-voting-app', 
     resave: false,
     saveUninitialized: false, // Não cria sessão até que algo seja armazenado
     cookie: {
@@ -42,9 +42,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 let teachersDB = [];
 
 // --- Credenciais de Administrador ---
-// Em uma aplicação real, estas devem ser armazenadas de forma segura como variáveis de ambiente
-const ADMIN_USERNAME = 'diego';
-const ADMIN_PASSWORD = 'hardcore';
+// Lendo as credenciais das variáveis de ambiente. Se não existirem, usa valores padrão.
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'diego';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'hardcore';
 
 
 // --- Funções Auxiliares ---
