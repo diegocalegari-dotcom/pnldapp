@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom print styles from original index.html */
+@media print {
+  body, #root {
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+    background-color: white;
+  }
+  .print-hidden {
+    display: none !important;
+  }
+  .print-card {
+      box-shadow: none !important;
+      border: 1px solid #e2e8f0; /* slate-200 */
+  }
+  .print-no-break {
+      page-break-inside: avoid;
+  }
+}
