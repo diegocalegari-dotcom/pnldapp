@@ -6,33 +6,37 @@ const bodyParser = require('body-parser');
 const session = require('express-session');
 const crypto = require('crypto');
 const path = require('path');
-const sqlite3 = require('sqlite3').verbose();
-const { open } = require('sqlite');
+const { Pool } = require('pg');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// --- Configuração do Banco de Dados SQLite ---
-let db;
-(async () => {
-    // Abre (ou cria) o arquivo do banco de dados no disco persistente
-    const dbPath = process.env.NODE_ENV === 'production' ? '/data/database.sqlite' : './database.sqlite';
-    db = await open({
-        filename: dbPath,
-        driver: sqlite3.Database
-    });
+// --- Configuração do Banco de Dados PostgreSQL ---
+// Conecta ao banco de dados usando a URL fornecida pela variável de ambiente (configurada no Render).
+// Isso garante que os dados sejam persistentes.
+const db = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+});
 
-    // Cria a tabela de professores se ela não existir
-    await db.run(`
-        CREATE TABLE IF NOT EXISTS teachers (
-            id TEXT PRIMARY KEY,
-            name TEXT NOT NULL,
-            subjects TEXT NOT NULL,
-            eixo TEXT NOT NULL,
-            vote TEXT
-        )
-    `);
-    console.log(`Banco de dados SQLite conectado em '${dbPath}' e tabela garantida.`);
+(async () => {
+    try {
+        await db.connect();
+        // Cria a tabela de professores se ela não existir
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS teachers (
+                id TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                subjects TEXT NOT NULL,
+                eixo TEXT NOT NULL,
+                vote TEXT
+            )
+        `);
+        console.log(`Banco de dados PostgreSQL conectado e tabela 'teachers' garantida.`);
+    } catch (err) {
+        console.error('Falha crítica ao inicializar o banco de dados PostgreSQL:', err);
+        process.exit(1); // Encerra a aplicação se não for possível conectar ao DB
+    }
 })();
 
 
@@ -59,7 +63,7 @@ const buildPath = path.join(__dirname, 'dist');
 app.use(express.static(buildPath));
 
 
-// --- Rotas da API (Atualizadas para usar SQLite) ---
+// --- Rotas da API (Atualizadas para usar PostgreSQL) ---
 
 // == Autenticação ==
 
@@ -72,7 +76,8 @@ app.post('/api/auth/login-register', async (req, res) => {
 
     try {
         // Procura por nome, ignorando maiúsculas/minúsculas
-        let teacher = await db.get('SELECT * FROM teachers WHERE lower(name) = lower(?)', name.trim());
+        const result = await db.query('SELECT * FROM teachers WHERE lower(name) = lower($1)', [name.trim()]);
+        let teacher = result.rows[0];
 
         if (teacher) {
             console.log(`Professor(a) '${name}' encontrado. Logando...`);
@@ -84,9 +89,9 @@ app.post('/api/auth/login-register', async (req, res) => {
                 eixo,
                 vote: null,
             };
-            await db.run(
-                'INSERT INTO teachers (id, name, subjects, eixo, vote) VALUES (?, ?, ?, ?, ?)',
-                teacher.id, teacher.name, teacher.subjects, teacher.eixo, teacher.vote
+            await db.query(
+                'INSERT INTO teachers (id, name, subjects, eixo, vote) VALUES ($1, $2, $3, $4, $5)',
+                [teacher.id, teacher.name, teacher.subjects, teacher.eixo, teacher.vote]
             );
             console.log(`Novo professor(a) '${name}' criado.`);
         }
@@ -143,7 +148,8 @@ app.get('/api/auth/session', async (req, res) => {
         return res.status(200).json({ isAdmin: true, teacher: null });
     }
     if (req.session.teacherId) {
-        const teacher = await db.get('SELECT * FROM teachers WHERE id = ?', req.session.teacherId);
+        const result = await db.query('SELECT * FROM teachers WHERE id = $1', [req.session.teacherId]);
+        const teacher = result.rows[0];
         if (teacher) {
              const teacherResponse = {
                 ...teacher,
@@ -168,7 +174,8 @@ const requireAdmin = (req, res, next) => {
 
 app.get('/api/teachers', requireAdmin, async (req, res) => {
     try {
-        const teachersRaw = await db.all('SELECT * FROM teachers ORDER BY name');
+        const result = await db.query('SELECT * FROM teachers ORDER BY name');
+        const teachersRaw = result.rows;
         // Deserializa os campos JSON para cada professor
         const teachers = teachersRaw.map(t => ({
             ...t,
@@ -192,7 +199,7 @@ app.post('/api/teachers/:id/vote', async (req, res) => {
     }
 
     try {
-        await db.run('UPDATE teachers SET vote = ? WHERE id = ?', JSON.stringify(vote), id);
+        await db.query('UPDATE teachers SET vote = $1 WHERE id = $2', [JSON.stringify(vote), id]);
         console.log(`Voto registrado para o ID do professor: ${id}`);
         return res.status(200).json({ message: 'Voto registrado com sucesso.' });
     } catch (err) {
@@ -207,8 +214,8 @@ app.post('/api/teachers/:id/vote', async (req, res) => {
 app.delete('/api/teachers/:id', requireAdmin, async (req, res) => {
     const { id } = req.params;
     try {
-        const result = await db.run('DELETE FROM teachers WHERE id = ?', id);
-        if (result.changes > 0) {
+        const result = await db.query('DELETE FROM teachers WHERE id = $1', [id]);
+        if (result.rowCount > 0) {
             console.log(`Admin excluiu o professor com ID: ${id}`);
             return res.status(200).json({ message: 'Professor excluído com sucesso.' });
         }
@@ -221,9 +228,10 @@ app.delete('/api/teachers/:id', requireAdmin, async (req, res) => {
 
 app.post('/api/admin/reset-votes', requireAdmin, async (req, res) => {
     try {
-        await db.run('UPDATE teachers SET vote = NULL');
+        await db.query('UPDATE teachers SET vote = NULL');
         console.log('Admin reiniciou todos os votos.');
-        const teachersRaw = await db.all('SELECT * FROM teachers ORDER BY name');
+        const result = await db.query('SELECT * FROM teachers ORDER BY name');
+        const teachersRaw = result.rows;
         const teachers = teachersRaw.map(t => ({
             ...t,
             subjects: JSON.parse(t.subjects),
@@ -238,7 +246,7 @@ app.post('/api/admin/reset-votes', requireAdmin, async (req, res) => {
 
 app.post('/api/admin/reset-all', requireAdmin, async (req, res) => {
     try {
-        await db.run('DELETE FROM teachers');
+        await db.query('DELETE FROM teachers');
         console.log('Admin resetou toda a base de dados.');
         res.status(200).json({ message: 'Todos os dados foram apagados com sucesso.' });
     } catch(err) {
