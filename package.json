@@ -1,0 +1,30 @@
+{
+  "name": "sistema-votacao-app",
+  "version": "1.0.0",
+  "description": "Frontend e backend para a aplicação de votação de livros didáticos.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "nodemon": "^3.1.0",
+    "typescript": "^5.5.3",
+    "vite": "^5.3.3"
+  }
+}

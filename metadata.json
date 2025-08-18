@@ -1,0 +1,5 @@
+{
+  "name": "Sistema de Votação de Livros Didáticos",
+  "description": "Uma aplicação web para que professores do Instituto de Educação Estadual de Maringá possam se cadastrar e votar em suas opções de livros didáticos e projetos integradores para o próximo ano letivo. Inclui um painel administrativo para gerenciamento de dados e geração de relatórios.",
+  "requestFramePermissions": []
+}
