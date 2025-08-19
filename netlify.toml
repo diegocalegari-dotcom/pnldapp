@@ -1,0 +1,30 @@
+# netlify.toml
+# Configurações de build
+[build]
+# O comando de build será executado na raiz do repositório.
+# Primeiro, instala todas as dependências do monorepo (incluindo client e server).
+# Depois, executa o script 'build' definido no package.json da raiz,
+# que por sua vez chama 'npm run build --workspace=client'.
+command = "npm install && npm run build"
+
+# A pasta onde o Netlify encontrará os arquivos estáticos para servir.
+# Isso é relativo à raiz do repositório.
+publish = "client/dist"
+# A pasta onde o Netlify encontrará suas Serverless Functions.
+# Isso também é relativo à raiz do repositório.
+functions = "netlify/functions"
+# Redireciona as chamadas de API para as funções
+# Isso é crucial para que seu front-end possa se comunicar com as funções.
+[[redirects]]
+from = "/api/*"
+to = "/.netlify/functions/:splat"
+status = 200
+  
+# Configurações para o ambiente de desenvolvimento local do Netlify CLI (opcional, mas útil)
+[dev]
+framework = "#custom"
+command = "npm run dev" # Comando para iniciar o dev server localmente (se você usar o
+Netlify CLI)
+targetPort = 5173 # Porta do seu frontend Vite
+publish = "client/dist"
+functions = "netlify/functions"
