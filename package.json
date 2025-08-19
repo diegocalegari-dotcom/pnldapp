@@ -8,7 +8,6 @@
     "server"
   ],
   "scripts": {
-    "install": "npm install --workspaces --if-present",
     "dev": "npm-run-all --parallel dev:*",
     "dev:client": "npm run dev --workspace=client",
     "dev:server": "npm run dev --workspace=server",
