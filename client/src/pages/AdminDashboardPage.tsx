@@ -53,7 +53,7 @@ const AdminDashboardPage: React.FC = () => {
       if (!modalState.action) return { title: '', body: '', confirmText: '' };
       switch (modalState.action.type) {
           case 'delete-teacher':
-              const teacher = teachers.find(t => t.id === modalState.action?.teacherId);
+              const teacher = teachers.find(t => t.id === modalState.action.teacherId);
               return { title: 'Excluir Professor', body: `Tem certeza que deseja excluir o cadastro do professor(a) ${teacher?.name}? Esta ação não pode ser desfeita.`, confirmText: 'Sim, Excluir' };
           case 'reset-votes':
               return { title: 'Reiniciar Votos', body: 'Tem certeza que deseja apagar TODOS os votos registrados? Os cadastros dos professores serão mantidos.', confirmText: 'Sim, Reiniciar' };

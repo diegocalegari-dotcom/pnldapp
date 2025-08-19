@@ -1,28 +1,39 @@
-// server.js
+// server/index.js
+const path = require('path');
+// Carrega variáveis de ambiente do arquivo .env na raiz do projeto
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') }); 
 
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const session = require('express-session');
 const crypto = require('crypto');
-const path = require('path');
+const fs = require('fs');
 const { Pool } = require('pg');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // --- Configuração do Banco de Dados PostgreSQL ---
-// Conecta ao banco de dados usando a URL fornecida pela variável de ambiente (configurada no Render).
-// Isso garante que os dados sejam persistentes.
+if (!process.env.DATABASE_URL) {
+    console.error("\n\n--- ERRO CRÍTICO ---\n");
+    console.error("A variável de ambiente DATABASE_URL não foi encontrada.");
+    console.error("1. Certifique-se de que existe um arquivo chamado '.env' na raiz do projeto.");
+    console.error("2. Dentro do .env, adicione a linha: DATABASE_URL=\"sua_string_de_conexao_do_neon\"\n");
+    process.exit(1); 
+}
+
 const db = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+    ssl: {
+        rejectUnauthorized: false,
+    },
 });
+
 
 (async () => {
     try {
         await db.connect();
-        // Cria a tabela de professores se ela não existir
         await db.query(`
             CREATE TABLE IF NOT EXISTS teachers (
                 id TEXT PRIMARY KEY,
@@ -35,14 +46,15 @@ const db = new Pool({
         console.log(`Banco de dados PostgreSQL conectado e tabela 'teachers' garantida.`);
     } catch (err) {
         console.error('Falha crítica ao inicializar o banco de dados PostgreSQL:', err);
-        process.exit(1); // Encerra a aplicação se não for possível conectar ao DB
+        process.exit(1);
     }
 })();
 
 
 // --- Middlewares ---
+// Em desenvolvimento, o cliente roda em outra porta (ex: 5173), então o CORS é necessário.
 app.use(cors({
-  origin: '*', 
+  origin: process.env.NODE_ENV === 'production' ? '*' : 'http://localhost:5173', 
   credentials: true,
 }));
 app.use(bodyParser.json());
@@ -57,13 +69,7 @@ app.use(session({
     }
 }));
 
-// --- Servir Arquivos Estáticos (Frontend) ---
-// Em produção, servimos os arquivos otimizados da pasta 'dist'
-const buildPath = path.join(__dirname, 'dist');
-app.use(express.static(buildPath));
-
-
-// --- Rotas da API (Atualizadas para usar PostgreSQL) ---
+// --- Rotas da API (Sem alterações na lógica) ---
 
 // == Autenticação ==
 
@@ -75,7 +81,6 @@ app.post('/api/auth/login-register', async (req, res) => {
     }
 
     try {
-        // Procura por nome, ignorando maiúsculas/minúsculas
         const result = await db.query('SELECT * FROM teachers WHERE lower(name) = lower($1)', [name.trim()]);
         let teacher = result.rows[0];
 
@@ -85,7 +90,7 @@ app.post('/api/auth/login-register', async (req, res) => {
             teacher = {
                 id: crypto.randomUUID(),
                 name: name.trim(),
-                subjects: JSON.stringify([subject]), // Armazena como string JSON
+                subjects: JSON.stringify([subject]),
                 eixo,
                 vote: null,
             };
@@ -96,7 +101,6 @@ app.post('/api/auth/login-register', async (req, res) => {
             console.log(`Novo professor(a) '${name}' criado.`);
         }
 
-        // Deserializa os campos JSON antes de enviar para o frontend
         const teacherResponse = {
             ...teacher,
             subjects: JSON.parse(teacher.subjects),
@@ -115,7 +119,6 @@ app.post('/api/auth/login-register', async (req, res) => {
 });
 
 app.post('/api/auth/admin-login', (req, res) => {
-    // Credenciais de administrador a partir de variáveis de ambiente
     const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'diego';
     const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'hardcore';
 
@@ -176,7 +179,6 @@ app.get('/api/teachers', requireAdmin, async (req, res) => {
     try {
         const result = await db.query('SELECT * FROM teachers ORDER BY name');
         const teachersRaw = result.rows;
-        // Deserializa os campos JSON para cada professor
         const teachers = teachersRaw.map(t => ({
             ...t,
             subjects: JSON.parse(t.subjects),
@@ -193,7 +195,6 @@ app.post('/api/teachers/:id/vote', async (req, res) => {
     const { id } = req.params;
     const { vote } = req.body;
     
-    // Um admin pode votar? Por enquanto não, mas um professor só pode votar por si.
     if (!req.session.isAdmin && req.session.teacherId !== id) {
         return res.status(403).json({ message: 'Acesso negado. Você só pode votar por si mesmo.' });
     }
@@ -255,11 +256,31 @@ app.post('/api/admin/reset-all', requireAdmin, async (req, res) => {
     }
 });
 
-// --- Rota Catch-All para o Frontend ---
-// Esta rota garante que qualquer requisição que não seja para a API sirva o app React.
-app.get('*', (req, res) => {
-    res.sendFile(path.join(buildPath, 'index.html'));
-});
+// --- Servir o Frontend (Apenas em produção) ---
+// O caminho agora aponta para a pasta 'dist' dentro da pasta 'client'
+const buildPath = path.join(__dirname, '..', 'client', 'dist');
+const indexPath = path.join(buildPath, 'index.html');
+
+// Verifica se o build de produção do cliente existe
+if (fs.existsSync(indexPath)) {
+    console.log('Pasta `client/dist` encontrada. Configurando para servir arquivos estáticos de produção.');
+    app.use(express.static(buildPath));
+    
+    // Rota Catch-All para servir o app React
+    app.get('*', (req, res, next) => {
+        // Ignora as rotas da API para não interferir
+        if (req.path.startsWith('/api/')) {
+            return next();
+        }
+        res.sendFile(indexPath);
+    });
+} else {
+    console.warn('\n--- MODO DE DESENVOLVIMENTO (API) ---');
+    console.warn('A pasta `client/dist` não foi encontrada. O servidor está rodando em modo "API-only".');
+    console.warn('Execute `npm run dev` na raiz do projeto para rodar o cliente e o servidor.');
+    console.warn('--------------------------------------\n');
+}
+
 
 // --- Iniciar Servidor ---
 app.listen(PORT, () => {

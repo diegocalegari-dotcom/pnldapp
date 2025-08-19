@@ -1,32 +1,24 @@
 {
-  "name": "sistema-votacao-app",
+  "name": "sistema-votacao-monorepo",
   "version": "1.0.0",
-  "description": "Frontend e backend para a aplicação de votação de livros didáticos.",
-  "main": "server.js",
+  "description": "Aplicação de votação de livros didáticos com frontend e backend separados.",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server"
+  ],
   "scripts": {
-    "start": "node server.js",
-    "dev": "vite",
-    "build": "vite build"
+    "install": "npm install --workspaces --if-present",
+    "dev": "npm-run-all --parallel dev:*",
+    "dev:client": "npm run dev --workspace=client",
+    "dev:server": "npm run dev --workspace=server",
+    "build": "npm run build --workspace=client",
+    "start": "npm start --workspace=server"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "body-parser": "^1.20.2",
-    "cors": "^2.8.5",
-    "express": "^4.19.2",
-    "express-session": "^1.18.0",
-    "pg": "^8.12.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-router-dom": "^6.24.1"
-  },
   "devDependencies": {
-    "@types/react": "^18.3.3",
-    "@types/react-dom": "^18.3.0",
-    "@vitejs/plugin-react": "^4.3.1",
-    "nodemon": "^3.1.0",
-    "typescript": "^5.5.3",
-    "vite": "^5.3.3"
+    "npm-run-all": "^4.1.5"
   }
 }

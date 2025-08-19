@@ -2,8 +2,8 @@ import React, { createContext, useReducer, ReactNode, useCallback, useEffect } f
 import { Teacher, Vote, Subject, Eixo } from '../types';
 import { SUBJECT_TO_EIXO_MAP } from '../constants';
 
-// Como o frontend e o backend estarão no mesmo servidor, 
-// podemos usar um caminho relativo. O navegador completará o domínio.
+// A URL da API é relativa. O proxy do Vite em desenvolvimento e o Nginx/Express em produção
+// direcionarão as chamadas para o servidor backend.
 const API_BASE_URL = '/api';
 
 interface AppState {
