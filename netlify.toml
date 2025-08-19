@@ -2,21 +2,28 @@
 
 # Configurações de build
 [build]
-  command = "npm install && npm run build"
+  # Usamos 'npm ci' para instalações mais rápidas e confiáveis em CI/CD.
+  # Ele requer um package-lock.json atualizado.
+  command = "npm ci && npm run build" 
+  
   publish = "client/dist"
   functions = "netlify/functions"
 
+# Define a versão do Node.js para o ambiente de build.
+# É recomendável usar uma versão LTS (Long Term Support) recente.
+[build.environment]
+  NODE_VERSION = "18" # Ou "20", dependendo da sua preferência e compatibilidade.
+
 # Redireciona as chamadas de API para as funções
-# Isso é crucial para que seu front-end possa se comunicar com as funções.
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
 
-# Configurações para o ambiente de desenvolvimento local do Netlify CLI (opcional, mas útil)
+# Configurações para o ambiente de desenvolvimento local do Netlify CLI
 [dev]
   framework = "#custom"
-  command = "npm run dev" # Comando para iniciar o dev server localmente (se você usar o Netlify CLI)
+  command = "npm run dev"
   targetPort = 5173
   publish = "client/dist"
   functions = "netlify/functions"
