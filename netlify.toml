@@ -24,6 +24,3 @@
   publish = "client/dist"
   functions = "netlify/functions"
 
-# Configuração do Netlify Build Plugin para cache do npm
-[[plugins]]
-  package = "netlify-plugin-npm-cache"
