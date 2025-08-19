@@ -197,13 +197,16 @@ router.post('/teachers/:id/vote', async (req, res) => {
         return res.status(403).json({ message: 'Acesso negado. Você só pode votar por si mesmo.' });
     }
 
+    const client = await db.connect();
     try {
-        await db.query('UPDATE teachers SET vote = $1 WHERE id = $2', [JSON.stringify(vote), id]);
+        await client.query('UPDATE teachers SET vote = $1 WHERE id = $2', [JSON.stringify(vote), id]);
         console.log(`Voto registrado para o ID do professor: ${id}`);
         return res.status(200).json({ message: 'Voto registrado com sucesso.' });
     } catch (err) {
         console.error('Erro ao registrar voto:', err);
         res.status(500).json({ message: 'Erro interno do servidor.' });
+    } finally {
+        client.release();
     }
 });
 
