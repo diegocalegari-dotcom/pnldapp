@@ -49,7 +49,7 @@ const VotePage: React.FC = () => {
       setMessage('Voto registrado com sucesso! Redirecionando...');
       setTimeout(() => navigate('/'), 2000);
     } catch (err) {
-      setMessage('Ocorreu um erro ao salvar seu voto. Tente novamente.');
+      setMessage('Falha na comunicação. Tente novamente em alguns instantes.');
       setIsLoading(false);
     }
   };
