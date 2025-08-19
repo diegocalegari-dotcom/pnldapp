@@ -13,7 +13,7 @@
 # Redireciona as chamadas de API para as funções
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/:splat"
+  to = "/.netlify/functions/api/:splat"
   status = 200
 
 # Configurações para o ambiente de desenvolvimento local do Netlify CLI
