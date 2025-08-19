@@ -2,17 +2,13 @@
 
 # Configurações de build
 [build]
-  # Usamos 'npm ci' para instalações mais rápidas e confiáveis em CI/CD.
-  # Ele requer um package-lock.json atualizado.
   command = "npm ci && npm run build" 
-  
   publish = "client/dist"
   functions = "netlify/functions"
 
 # Define a versão do Node.js para o ambiente de build.
-# É recomendável usar uma versão LTS (Long Term Support) recente.
 [build.environment]
-  NODE_VERSION = "18" # Ou "20", dependendo da sua preferência e compatibilidade.
+  NODE_VERSION = "18"
 
 # Redireciona as chamadas de API para as funções
 [[redirects]]
@@ -27,3 +23,7 @@
   targetPort = 5173
   publish = "client/dist"
   functions = "netlify/functions"
+
+# Configuração do Netlify Build Plugin para cache do npm
+[[plugins]]
+  package = "netlify-plugin-npm-cache"
