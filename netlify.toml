@@ -10,6 +10,12 @@
 [build.environment]
   NODE_VERSION = "18"
 
+# Aumenta o tempo limite para a função da API para 25s
+[functions]
+  node_bundler = "esbuild"
+[functions."api"]
+  timeout = 25
+
 # Redireciona as chamadas de API para as funções
 [[redirects]]
   from = "/api/*"
