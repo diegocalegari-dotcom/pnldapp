@@ -124,16 +124,18 @@ export const BOOK_DATA: Record<string, { textbooks: Book[]; projects: Book[] }> 
       { code: '0150P260102202000', title: 'Projetos Integradores: Tempo Jovem', publisher: 'Kits Editora Comércio e Indústria Ltda' },
     ],
   },
-  [Eixo.COMPUTACAO]: {
+ [Eixo.COMPUTACAO]: {
     textbooks: [
-        { code: '0109P26081', title: 'Ctrl+alt+play', publisher: 'Moderna' },
-        { code: '0054P26081', title: 'Expressão digital', publisher: 'FTD' },
-        { code: '0064P26081', title: 'Like: educação digital', publisher: 'IBEP' },
-        { code: '0029P26081', title: 'Mundo digital', publisher: 'Editora Positivo' },
-        { code: '0047P26081', title: 'Nós na rede', publisher: 'Edições SM' },
-        { code: '0127P26081', title: 'Ponto com: educação digital', publisher: 'Ática' },
-        { code: '0117P26081', title: 'Redes e conexões: educação digital', publisher: 'Saraiva Educação' }
-    ],
+        { code: '0012P260101201813', title: 'MODERNA PLUS - Educação Digital', publisher: 'Editora Moderna Ltda' },
+        { code: '0036P260101201813', title: 'EDUCAÇÃO DIGITAL POR TODA PARTE', publisher: 'Editora FTD S.A.' },
+        { code: '0037P260101201813', title: '360° EDUCAÇÃO DIGITAL', publisher: 'Editora FTD S.A.' },
+        { code: '0067P260101201813', title: 'INTERAÇÃO EDUCAÇÃO DIGITAL', publisher: 'EDITORA DO BRASIL SA' },
+        { code: '0085P260101201813', title: 'IDENTIDADE SARAIVA', publisher: 'SARAIVA EDUCACAO S.A.' },
+        { code: '0098P260101201813', title: 'SER PROTAGONISTA EDUCAÇÃO DIGITAL', publisher: 'EDIÇÕES SM LTDA' },
+        { code: '0108P260101201813', title: 'Saberes da Educação Digital', publisher: 'Terra Sul Editora EIRELI' },
+        { code: '0116P260101201813', title: 'Educação Digital: Por Dentro da Matrix', publisher: 'Editora Immanuel Kant Ltda' },
+        { code: '0135P260101201813', title: 'MUNDO DIGITAL - MODO DE USAR', publisher: 'EDITORA AJS LTDA.' },
+        { code: '0163P260101201813', title: 'Consciência: uma jornada pela Educação Digital', publisher: 'PROSA NOVA EDITORA DE LIVROS LTDA' },
     projects: [
       { code: '0012P260101201813', title: 'MODERNA PLUS - Educação Digital', publisher: 'Editora Moderna Ltda' },
       { code: '0036P260101201813', title: 'EDUCAÇÃO DIGITAL POR TODA PARTE', publisher: 'Editora FTD S.A.' },
