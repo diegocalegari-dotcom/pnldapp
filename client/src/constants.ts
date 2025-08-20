@@ -136,6 +136,7 @@ export const BOOK_DATA: Record<string, { textbooks: Book[]; projects: Book[] }> 
         { code: '0116P260101201813', title: 'Educação Digital: Por Dentro da Matrix', publisher: 'Editora Immanuel Kant Ltda' },
         { code: '0135P260101201813', title: 'MUNDO DIGITAL - MODO DE USAR', publisher: 'EDITORA AJS LTDA.' },
         { code: '0163P260101201813', title: 'Consciência: uma jornada pela Educação Digital', publisher: 'PROSA NOVA EDITORA DE LIVROS LTDA' },
+],
     projects: [
       { code: '0012P260101201813', title: 'MODERNA PLUS - Educação Digital', publisher: 'Editora Moderna Ltda' },
       { code: '0036P260101201813', title: 'EDUCAÇÃO DIGITAL POR TODA PARTE', publisher: 'Editora FTD S.A.' },
